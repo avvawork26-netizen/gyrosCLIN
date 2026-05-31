@@ -61,5 +61,26 @@ export function fmtHours(h: number): string {
   return h.toFixed(2);
 }
 
+// Label a plain YYYY-MM-DD (no timezone math — it's already a wall date).
+export function fmtDayLabel(dateKey: string): string {
+  const d = new Date(`${dateKey}T12:00:00`);
+  return d.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+// Format a "HH:mm" or "HH:mm:ss" wall time as "h:mm AM".
+export function fmtClock(hhmmss: string): string {
+  const [h, m] = hhmmss.split(":");
+  const d = new Date();
+  d.setHours(Number(h), Number(m), 0, 0);
+  return d.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 // Re-exported so callers needn't import date-fns-tz directly.
 export { toZonedTime };

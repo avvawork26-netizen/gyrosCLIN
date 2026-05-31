@@ -31,3 +31,29 @@ export type Schedule = {
   start_time: string; // HH:mm or HH:mm:ss
   end_time: string;
 };
+
+// What the public clock-in screen receives after a correct PIN.
+export type PunchView = {
+  id: string;
+  clock_in: string;
+  clock_out: string | null;
+  note: string | null;
+};
+
+export type ScheduleView = {
+  id: string;
+  day_date: string;
+  start_time: string;
+  end_time: string;
+};
+
+export type SessionData = {
+  employee: PublicEmployee;
+  status: "in" | "out";
+  openSince: string | null; // clock_in of the open punch, if clocked in
+  weekStart: string; // Monday YYYY-MM-DD (restaurant time)
+  weekHours: number;
+  todayPunches: PunchView[];
+  weekSchedule: ScheduleView[];
+  hasScheduleForWeek: boolean;
+};
