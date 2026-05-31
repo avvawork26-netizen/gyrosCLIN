@@ -82,5 +82,19 @@ export function fmtClock(hhmmss: string): string {
   });
 }
 
+// For <input type="datetime-local">: stored instant -> "YYYY-MM-DDTHH:mm"
+// expressed in restaurant wall time.
+export function utcToLocalInput(iso: string | Date): string {
+  return formatInTimeZone(new Date(iso), TZ, "yyyy-MM-dd'T'HH:mm");
+}
+
+// Inverse: a datetime-local value ("YYYY-MM-DDTHH:mm"), read as restaurant
+// wall time, converted to a UTC ISO instant. Returns null if unparseable.
+export function localInputToUtc(value: string): string | null {
+  const m = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/.exec(value.trim());
+  if (!m) return null;
+  return localToUtcIso(m[1], m[2]);
+}
+
 // Re-exported so callers needn't import date-fns-tz directly.
 export { toZonedTime };
