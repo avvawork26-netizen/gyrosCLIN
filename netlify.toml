@@ -7,3 +7,7 @@
 
 [build.environment]
   NODE_VERSION = "22"
+  # The Supabase URL and anon key are public by design and get embedded in the
+  # client bundle by Next.js. Tell Netlify's secrets scanner not to flag them.
+  # The service-role key is NOT listed here — it must never reach the bundle.
+  SECRETS_SCAN_OMIT_KEYS = "NEXT_PUBLIC_SUPABASE_URL,NEXT_PUBLIC_SUPABASE_ANON_KEY"
