@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getEmployeeLocationId } from "@/lib/locations";
 
 async function requireAdmin() {
   const supabase = createClient();
@@ -38,8 +39,13 @@ export async function addShift(formData: FormData): Promise<ActionResult> {
   const bad = validate(day, start, end);
   if (bad) return { ok: false, error: bad };
 
+  // A shift belongs to the employee's location.
+  const locationId = await getEmployeeLocationId(supabase, employeeId);
+  if (!locationId) return { ok: false, error: "Employee has no location" };
+
   const { error } = await supabase.from("schedules").insert({
     employee_id: employeeId,
+    location_id: locationId,
     day_date: day,
     start_time: start,
     end_time: end,
@@ -61,10 +67,15 @@ export async function updateShift(formData: FormData): Promise<ActionResult> {
   const bad = validate(day, start, end);
   if (bad) return { ok: false, error: bad };
 
+  // Keep the shift's location aligned with its employee.
+  const locationId = await getEmployeeLocationId(supabase, employeeId);
+  if (!locationId) return { ok: false, error: "Employee has no location" };
+
   const { error } = await supabase
     .from("schedules")
     .update({
       employee_id: employeeId,
+      location_id: locationId,
       day_date: day,
       start_time: start,
       end_time: end,

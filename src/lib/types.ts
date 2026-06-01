@@ -1,9 +1,17 @@
+export type Location = {
+  id: string;
+  name: string;
+  slug: string;
+  created_at: string;
+};
+
 export type Employee = {
   id: string;
   name: string;
   pin: string;
   hourly_rate: number;
   is_active: boolean;
+  location_id: string;
   failed_attempts: number;
   locked_until: string | null;
   created_at: string;
@@ -18,6 +26,7 @@ export type PublicEmployee = {
 export type Punch = {
   id: string;
   employee_id: string;
+  location_id: string;
   clock_in: string;
   clock_out: string | null;
   note: string | null;
@@ -27,6 +36,7 @@ export type Punch = {
 export type Schedule = {
   id: string;
   employee_id: string;
+  location_id: string;
   day_date: string; // YYYY-MM-DD
   start_time: string; // HH:mm or HH:mm:ss
   end_time: string;

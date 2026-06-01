@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   const admin = createAdminClient();
   const { data: emp } = await admin
     .from("employees")
-    .select("id, name, is_active")
+    .select("id, name, is_active, location_id")
     .eq("id", employeeId)
     .maybeSingle();
   if (!emp || !emp.is_active) {
@@ -57,7 +57,11 @@ export async function POST(req: Request) {
     }
     const { error } = await admin
       .from("punches")
-      .insert({ employee_id: emp.id, clock_in: nowIso });
+      .insert({
+        employee_id: emp.id,
+        location_id: emp.location_id,
+        clock_in: nowIso,
+      });
     if (error) {
       return NextResponse.json({ error: "Could not clock in" }, { status: 500 });
     }

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { localInputToUtc } from "@/lib/time";
+import { getEmployeeLocationId } from "@/lib/locations";
 
 async function requireAdmin() {
   const supabase = createClient();
@@ -105,8 +106,13 @@ export async function addPunch(formData: FormData): Promise<ActionResult> {
     }
   }
 
+  // A punch belongs to the employee's location.
+  const locationId = await getEmployeeLocationId(supabase, employeeId);
+  if (!locationId) return { ok: false, error: "Employee has no location" };
+
   const { error } = await supabase.from("punches").insert({
     employee_id: employeeId,
+    location_id: locationId,
     clock_in: clockIn,
     clock_out: clockOut,
     note: noteRaw || null,

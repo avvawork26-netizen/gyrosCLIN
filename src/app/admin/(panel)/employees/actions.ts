@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { randomPin } from "@/lib/pin";
+import { getDefaultLocationId } from "@/lib/locations";
 
 async function requireAdmin() {
   const supabase = createClient();
@@ -36,12 +37,17 @@ export async function createEmployee(
   if (!name) return { ok: false, error: "Name is required" };
   if (rate === null) return { ok: false, error: "Enter a valid hourly rate" };
 
+  // New employees belong to a location (Part 2 wires this to the selected
+  // location; for now default to Colonial).
+  const locationId = await getDefaultLocationId(supabase);
+  if (!locationId) return { ok: false, error: "No location configured" };
+
   // Insert with PIN retry to dodge the (rare) unique collision.
   for (let attempt = 0; attempt < 25; attempt++) {
     const pin = randomPin();
     const { error } = await supabase
       .from("employees")
-      .insert({ name, hourly_rate: rate, pin, is_active: true });
+      .insert({ name, hourly_rate: rate, pin, is_active: true, location_id: locationId });
     if (!error) {
       revalidatePath("/admin/employees");
       revalidatePath("/admin");
