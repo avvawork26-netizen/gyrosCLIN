@@ -2,16 +2,24 @@
 
 import { useEffect, useState } from "react";
 import type { PublicEmployee, SessionData } from "@/lib/types";
+import type { Location } from "@/lib/locations";
+import LocationPicker from "@/components/public/LocationPicker";
 import EmployeePicker from "@/components/public/EmployeePicker";
 import PinPad from "@/components/public/PinPad";
 import ClockDashboard from "@/components/public/ClockDashboard";
 
-type Stage = "pick" | "pin" | "dash";
+type Stage = "location" | "pick" | "pin" | "dash";
 
 export default function Home() {
-  const [stage, setStage] = useState<Stage>("pick");
+  const [stage, setStage] = useState<Stage>("location");
+
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [locLoading, setLocLoading] = useState(true);
+  const [locError, setLocError] = useState<string | null>(null);
+  const [location, setLocation] = useState<Location | null>(null);
+
   const [employees, setEmployees] = useState<PublicEmployee[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
 
   const [selected, setSelected] = useState<PublicEmployee | null>(null);
@@ -22,11 +30,29 @@ export default function Home() {
   const [session, setSession] = useState<SessionData | null>(null);
   const [dashError, setDashError] = useState<string | null>(null);
 
-  async function loadEmployees() {
+  async function loadLocations() {
+    setLocLoading(true);
+    setLocError(null);
+    try {
+      const res = await fetch("/api/locations", { cache: "no-store" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed");
+      setLocations(data.locations);
+    } catch {
+      setLocError("Could not load locations. Check your connection.");
+    } finally {
+      setLocLoading(false);
+    }
+  }
+
+  async function loadEmployees(locationId: string) {
     setLoading(true);
     setListError(null);
     try {
-      const res = await fetch("/api/employees/active", { cache: "no-store" });
+      const res = await fetch(
+        `/api/employees/active?location=${encodeURIComponent(locationId)}`,
+        { cache: "no-store" }
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed");
       setEmployees(data.employees);
@@ -38,8 +64,21 @@ export default function Home() {
   }
 
   useEffect(() => {
-    loadEmployees();
+    loadLocations();
   }, []);
+
+  function pickLocation(l: Location) {
+    setLocation(l);
+    setEmployees([]);
+    setStage("pick");
+    loadEmployees(l.id);
+  }
+
+  function changeLocation() {
+    setLocation(null);
+    setSelected(null);
+    setStage("location");
+  }
 
   function pick(e: PublicEmployee) {
     setSelected(e);
@@ -131,7 +170,7 @@ export default function Home() {
     setSession(null);
     setSelected(null);
     setStage("pick");
-    loadEmployees();
+    if (location) loadEmployees(location.id);
   }
 
   return (
@@ -141,10 +180,30 @@ export default function Home() {
           <span className="text-burnt">MR GYROS</span>{" "}
           <span className="text-muted text-base font-normal">Time Clock</span>
         </h1>
+        {location && (
+          <p className="text-muted text-sm mt-1">{location.name}</p>
+        )}
       </header>
+
+      {stage === "location" && (
+        <div className="mx-auto max-w-md">
+          <LocationPicker
+            locations={locations}
+            loading={locLoading}
+            error={locError}
+            onPick={pickLocation}
+          />
+        </div>
+      )}
 
       {stage === "pick" && (
         <div className="mx-auto max-w-md">
+          <button
+            onClick={changeLocation}
+            className="text-burnt text-sm uppercase tracking-wide mb-4"
+          >
+            &larr; Change location
+          </button>
           <EmployeePicker
             employees={employees}
             loading={loading}
