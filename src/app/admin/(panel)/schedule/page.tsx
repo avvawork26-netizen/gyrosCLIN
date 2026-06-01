@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getLocationContext } from "@/lib/locationContext";
 import AddShiftForm from "@/components/admin/AddShiftForm";
 import ShiftItem, { type Shift } from "@/components/admin/ShiftItem";
 import { todayKey, weekStartKey, addDaysKey, fmtDayLabel } from "@/lib/time";
@@ -21,6 +22,8 @@ export default async function SchedulePage({
   searchParams: { week?: string };
 }) {
   const supabase = createClient();
+  const { selectedId } = await getLocationContext(supabase);
+  const locId = selectedId ?? "";
 
   const weekStart = searchParams.week
     ? weekStartKey(searchParams.week)
@@ -38,12 +41,14 @@ export default async function SchedulePage({
     .from("employees")
     .select("id, name")
     .eq("is_active", true)
+    .eq("location_id", locId)
     .order("name");
   const empList = employees ?? [];
 
   const { data } = await supabase
     .from("schedules")
     .select("id, employee_id, day_date, start_time, end_time, employee:employees(name)")
+    .eq("location_id", locId)
     .gte("day_date", weekStart)
     .lt("day_date", weekEnd)
     .order("start_time", { ascending: true });

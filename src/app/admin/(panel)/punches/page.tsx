@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getLocationContext } from "@/lib/locationContext";
 import PunchRow, { type PunchRowData } from "@/components/admin/PunchRow";
 import AddPunchForm from "@/components/admin/AddPunchForm";
 import { todayKey, addDaysKey, localToUtcIso } from "@/lib/time";
@@ -29,10 +30,13 @@ export default async function PunchesPage({
   searchParams: { employee_id?: string; from?: string; to?: string };
 }) {
   const supabase = createClient();
+  const { selectedId } = await getLocationContext(supabase);
+  const locId = selectedId ?? "";
 
   const { data: employees } = await supabase
     .from("employees")
     .select("id, name")
+    .eq("location_id", locId)
     .order("name");
   const empList = employees ?? [];
 
@@ -48,6 +52,7 @@ export default async function PunchesPage({
   let openQ = supabase
     .from("punches")
     .select("id, clock_in, clock_out, note, employee:employees(name)")
+    .eq("location_id", locId)
     .is("clock_out", null)
     .order("clock_in", { ascending: true });
   if (employeeId) openQ = openQ.eq("employee_id", employeeId);
@@ -58,6 +63,7 @@ export default async function PunchesPage({
   let rangeQ = supabase
     .from("punches")
     .select("id, clock_in, clock_out, note, employee:employees(name)")
+    .eq("location_id", locId)
     .not("clock_out", "is", null)
     .gte("clock_in", fromUtc)
     .lt("clock_in", toUtc)

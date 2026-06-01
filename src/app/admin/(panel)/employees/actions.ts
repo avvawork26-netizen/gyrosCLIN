@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { randomPin } from "@/lib/pin";
-import { getDefaultLocationId } from "@/lib/locations";
+import { getSelectedLocationId } from "@/lib/locationContext";
 
 async function requireAdmin() {
   const supabase = createClient();
@@ -37,9 +37,8 @@ export async function createEmployee(
   if (!name) return { ok: false, error: "Name is required" };
   if (rate === null) return { ok: false, error: "Enter a valid hourly rate" };
 
-  // New employees belong to a location (Part 2 wires this to the selected
-  // location; for now default to Colonial).
-  const locationId = await getDefaultLocationId(supabase);
+  // New employees are created in the admin's currently selected location.
+  const locationId = await getSelectedLocationId(supabase);
   if (!locationId) return { ok: false, error: "No location configured" };
 
   // Insert with PIN retry to dodge the (rare) unique collision.

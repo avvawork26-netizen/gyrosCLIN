@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { getLocationContext } from "@/lib/locationContext";
 import { fmtTime, fmtDateTime, todayKey, tzDateKey } from "@/lib/time";
 
 export const dynamic = "force-dynamic";
@@ -12,9 +13,11 @@ type OpenRow = {
 
 export default async function Dashboard() {
   const supabase = createClient();
+  const { selectedId } = await getLocationContext(supabase);
   const { data } = await supabase
     .from("punches")
     .select("id, clock_in, employee:employees(name)")
+    .eq("location_id", selectedId ?? "")
     .is("clock_out", null)
     .order("clock_in", { ascending: true });
 

@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { getLocationContext } from "@/lib/locationContext";
 import {
   todayKey,
   weekStartKey,
@@ -45,6 +46,7 @@ export default async function ReportsPage({
   searchParams: { from?: string; to?: string };
 }) {
   const supabase = createClient();
+  const { selectedId } = await getLocationContext(supabase);
 
   const today = todayKey();
   // Default range: the current week so far.
@@ -58,6 +60,7 @@ export default async function ReportsPage({
     .select(
       "clock_in, clock_out, employee:employees(id, name, hourly_rate, is_active)"
     )
+    .eq("location_id", selectedId ?? "")
     .gte("clock_in", fromUtc)
     .lt("clock_in", toUtc)
     .order("clock_in", { ascending: true });
