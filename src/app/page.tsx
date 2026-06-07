@@ -132,7 +132,7 @@ export default function Home() {
     }
   }
 
-  async function punch(action: "in" | "out") {
+  async function punch(action: "in" | "out" | "lunch" | "return") {
     if (!token) return;
     setBusy(true);
     setDashError(null);

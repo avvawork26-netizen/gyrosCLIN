@@ -60,6 +60,7 @@ export type ScheduleView = {
 export type SessionData = {
   employee: PublicEmployee;
   status: "in" | "out";
+  onLunch: boolean; // true if the open punch is on a lunch break
   openSince: string | null; // clock_in of the open punch, if clocked in
   weekStart: string; // Monday YYYY-MM-DD (restaurant time)
   weekHours: number;

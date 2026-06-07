@@ -19,12 +19,13 @@ export default function ClockDashboard({
   error,
 }: {
   session: SessionData;
-  onPunch: (action: "in" | "out") => void;
+  onPunch: (action: "in" | "out" | "lunch" | "return") => void;
   onDone: () => void;
   busy: boolean;
   error: string | null;
 }) {
   const clockedIn = session.status === "in";
+  const onLunch = clockedIn && session.onLunch;
   const today = todayKey();
 
   return (
@@ -48,10 +49,14 @@ export default function ClockDashboard({
           </span>
           <span
             className={`tag ${
-              clockedIn ? "border-ok text-ok" : "border-muted text-muted"
+              onLunch
+                ? "border-burnt text-burnt"
+                : clockedIn
+                ? "border-ok text-ok"
+                : "border-muted text-muted"
             }`}
           >
-            {clockedIn ? "Clocked in" : "Clocked out"}
+            {onLunch ? "On lunch" : clockedIn ? "Clocked in" : "Clocked out"}
           </span>
         </div>
         {clockedIn && session.openSince && (
@@ -68,13 +73,22 @@ export default function ClockDashboard({
       )}
 
       {clockedIn ? (
-        <button
-          onClick={() => onPunch("out")}
-          disabled={busy}
-          className="btn btn-block btn-danger text-2xl py-7 mb-4"
-        >
-          {busy ? "..." : "Clock out"}
-        </button>
+        <div className="grid grid-cols-2 gap-3 mb-4">
+          <button
+            onClick={() => onPunch("out")}
+            disabled={busy}
+            className="btn btn-danger text-2xl py-7"
+          >
+            {busy ? "..." : "Clock out"}
+          </button>
+          <button
+            onClick={() => onPunch(onLunch ? "return" : "lunch")}
+            disabled={busy}
+            className="btn btn-secondary text-2xl py-7"
+          >
+            {busy ? "..." : onLunch ? "Return" : "Lunch"}
+          </button>
+        </div>
       ) : (
         <button
           onClick={() => onPunch("in")}

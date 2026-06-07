@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 type OpenRow = {
   id: string;
   clock_in: string;
+  status: string;
   employee: { name: string } | null;
 };
 
@@ -16,7 +17,7 @@ export default async function Dashboard() {
   const { selectedId } = await getLocationContext(supabase);
   const { data } = await supabase
     .from("punches")
-    .select("id, clock_in, employee:employees(name)")
+    .select("id, clock_in, status, employee:employees(name)")
     .eq("location_id", selectedId ?? "")
     .is("clock_out", null)
     .order("clock_in", { ascending: true });
@@ -44,6 +45,11 @@ export default async function Dashboard() {
               >
                 <span className="font-semibold">
                   {r.employee?.name ?? "Unknown"}
+                  {r.status === "lunch" && (
+                    <span className="tag border-burnt text-burnt ml-2">
+                      On Lunch
+                    </span>
+                  )}
                 </span>
                 <span className="text-muted text-sm">
                   since {fmtTime(r.clock_in)}

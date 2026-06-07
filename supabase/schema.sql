@@ -45,6 +45,9 @@ create table if not exists public.punches (
   clock_in      timestamptz not null,
   clock_out     timestamptz,
   note          text,
+  -- Open punches can be 'active' (working) or 'lunch' (on break). The clock
+  -- never stops; this is a status flag only, no time is deducted.
+  status        text not null default 'active' check (status in ('active', 'lunch')),
   created_at    timestamptz not null default now(),
   constraint punches_order check (clock_out is null or clock_out >= clock_in)
 );

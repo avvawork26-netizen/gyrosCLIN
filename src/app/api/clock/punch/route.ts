@@ -15,7 +15,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
   const { token, action } = body;
-  if (!token || (action !== "in" && action !== "out")) {
+  const validActions = ["in", "out", "lunch", "return"];
+  if (!token || !action || !validActions.includes(action)) {
     return NextResponse.json({ error: "Bad request" }, { status: 400 });
   }
 
@@ -65,7 +66,7 @@ export async function POST(req: Request) {
     if (error) {
       return NextResponse.json({ error: "Could not clock in" }, { status: 500 });
     }
-  } else {
+  } else if (action === "out") {
     if (!open) {
       return NextResponse.json(
         { error: "You are not clocked in" },
@@ -78,6 +79,25 @@ export async function POST(req: Request) {
       .eq("id", open.id);
     if (error) {
       return NextResponse.json({ error: "Could not clock out" }, { status: 500 });
+    }
+  } else {
+    // 'lunch' or 'return' — a status flag on the open punch. The clock keeps
+    // running; no time is deducted.
+    if (!open) {
+      return NextResponse.json(
+        { error: "You are not clocked in" },
+        { status: 409 }
+      );
+    }
+    const { error } = await admin
+      .from("punches")
+      .update({ status: action === "lunch" ? "lunch" : "active" })
+      .eq("id", open.id);
+    if (error) {
+      return NextResponse.json(
+        { error: "Could not update status" },
+        { status: 500 }
+      );
     }
   }
 

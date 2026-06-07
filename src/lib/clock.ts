@@ -36,7 +36,7 @@ export async function buildSession(
   // Any open punch (could have started before today, e.g. overnight).
   const { data: openPunches } = await admin
     .from("punches")
-    .select("id, clock_in, clock_out, note")
+    .select("id, clock_in, clock_out, note, status")
     .eq("employee_id", employee.id)
     .is("clock_out", null)
     .order("clock_in", { ascending: false })
@@ -71,6 +71,7 @@ export async function buildSession(
   return {
     employee: { id: employee.id, name: employee.name },
     status: open ? "in" : "out",
+    onLunch: open?.status === "lunch",
     openSince: open?.clock_in ?? null,
     weekStart,
     weekHours,
