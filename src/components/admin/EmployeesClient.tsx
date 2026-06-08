@@ -29,15 +29,17 @@ function SubmitBtn({ children }: { children: React.ReactNode }) {
 
 export default function EmployeesClient({
   employees,
+  locationName,
 }: {
   employees: AdminEmployee[];
+  locationName: string;
 }) {
   const active = employees.filter((e) => e.is_active);
   const inactive = employees.filter((e) => !e.is_active);
 
   return (
     <div className="space-y-8">
-      <AddEmployee />
+      <AddEmployee locationName={locationName} />
 
       <section>
         <h2 className="text-lg font-bold mb-3">Active staff ({active.length})</h2>
@@ -68,7 +70,7 @@ export default function EmployeesClient({
   );
 }
 
-function AddEmployee() {
+function AddEmployee({ locationName }: { locationName: string }) {
   const [state, action] = useFormState<CreateResult | null, FormData>(
     createEmployee,
     null
@@ -84,12 +86,17 @@ function AddEmployee() {
 
   return (
     <section className="panel">
-      <h2 className="text-lg font-bold mb-3">Add employee</h2>
+      <h2 className="text-lg font-bold mb-1">Add employee</h2>
+      <p className="text-sm text-muted mb-3">
+        Will be added to{" "}
+        <span className="text-burnt font-semibold">{locationName}</span> — switch
+        location in the header to add elsewhere.
+      </p>
 
       {revealed && (
         <div className="border border-burnt bg-oxblood2 p-4 mb-4">
           <p className="text-sm text-muted uppercase tracking-wide mb-1">
-            PIN for {revealed.name} — shown once
+            PIN for {revealed.name} — added to {locationName} — shown once
           </p>
           <p className="text-4xl font-bold tracking-widest text-burnt mb-2">
             {revealed.pin}

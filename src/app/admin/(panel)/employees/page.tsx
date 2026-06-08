@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 export default async function EmployeesPage() {
   const supabase = createClient();
-  const { selectedId } = await getLocationContext(supabase);
+  const { selectedId, selected } = await getLocationContext(supabase);
   const { data } = await supabase
     .from("employees")
     .select("id, name, hourly_rate, is_active, locked_until")
@@ -16,5 +16,10 @@ export default async function EmployeesPage() {
     .order("is_active", { ascending: false })
     .order("name", { ascending: true });
 
-  return <EmployeesClient employees={(data ?? []) as AdminEmployee[]} />;
+  return (
+    <EmployeesClient
+      employees={(data ?? []) as AdminEmployee[]}
+      locationName={selected?.name ?? "—"}
+    />
+  );
 }
