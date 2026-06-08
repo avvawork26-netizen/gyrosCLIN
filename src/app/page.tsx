@@ -45,8 +45,8 @@ export default function Home() {
     }
   }
 
-  async function loadEmployees(locationId: string) {
-    setLoading(true);
+  async function loadEmployees(locationId: string, silent = false) {
+    if (!silent) setLoading(true);
     setListError(null);
     try {
       const res = await fetch(
@@ -57,15 +57,24 @@ export default function Home() {
       if (!res.ok) throw new Error(data.error || "Failed");
       setEmployees(data.employees);
     } catch {
-      setListError("Could not load staff. Check your connection.");
+      // Don't clobber the visible list on a failed background refresh.
+      if (!silent) setListError("Could not load staff. Check your connection.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }
 
   useEffect(() => {
     loadLocations();
   }, []);
+
+  // While the staff list is showing, refresh it every few seconds so newly
+  // created employees appear on the counter tablet without a manual reload.
+  useEffect(() => {
+    if (stage !== "pick" || !location) return;
+    const id = setInterval(() => loadEmployees(location.id, true), 8000);
+    return () => clearInterval(id);
+  }, [stage, location]);
 
   function pickLocation(l: Location) {
     setLocation(l);
