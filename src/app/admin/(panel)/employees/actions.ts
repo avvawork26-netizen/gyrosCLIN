@@ -86,6 +86,26 @@ export async function setEmployeeActive(formData: FormData): Promise<void> {
   revalidatePath("/admin");
 }
 
+// Permanently delete a deactivated employee (and, via cascade, their punch
+// and schedule history). Guarded to inactive employees only so an active
+// employee can never be wiped by accident.
+export async function deleteEmployee(formData: FormData): Promise<void> {
+  const supabase = await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  const { data: emp } = await supabase
+    .from("employees")
+    .select("is_active")
+    .eq("id", id)
+    .maybeSingle();
+  if (!emp || emp.is_active) return; // only deactivated employees can be deleted
+
+  await supabase.from("employees").delete().eq("id", id);
+  revalidatePath("/admin/employees");
+  revalidatePath("/admin");
+}
+
 // Clears a lockout immediately (admin override for the PIN screen).
 export async function clearLockout(formData: FormData): Promise<void> {
   const supabase = await requireAdmin();

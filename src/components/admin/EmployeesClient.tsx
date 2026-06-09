@@ -6,6 +6,7 @@ import {
   createEmployee,
   updateEmployee,
   setEmployeeActive,
+  deleteEmployee,
   clearLockout,
   type CreateResult,
 } from "@/app/admin/(panel)/employees/actions";
@@ -240,6 +241,23 @@ function EmployeeRow({ emp }: { emp: AdminEmployee }) {
             {emp.is_active ? "Deactivate" : "Reactivate"}
           </button>
         </form>
+        {!emp.is_active && (
+          <form
+            action={deleteEmployee}
+            onSubmit={(e) => {
+              if (
+                !confirm(
+                  `Permanently delete ${emp.name}? This also removes all of their punch and schedule history. This cannot be undone.`
+                )
+              ) {
+                e.preventDefault();
+              }
+            }}
+          >
+            <input type="hidden" name="id" value={emp.id} />
+            <button className="btn btn-danger py-2 px-3 text-sm">Delete</button>
+          </form>
+        )}
       </div>
     </li>
   );
