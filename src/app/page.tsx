@@ -50,7 +50,9 @@ export default function Home() {
     setListError(null);
     try {
       const res = await fetch(
-        `/api/employees/active?location=${encodeURIComponent(locationId)}`,
+        `/api/employees/active?location=${encodeURIComponent(
+          locationId
+        )}&_=${Date.now()}`,
         { cache: "no-store" }
       );
       const data = await res.json();
